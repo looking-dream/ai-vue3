@@ -1,6 +1,6 @@
 # ai-vue3
 
-练手的vue3+ts项目
+vue3+ts的AI对话模板项目
 
 ## Vue 3 + TypeScript + Vite
 
