@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory,type RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 
 // 静态路由表
 const routes: Array<RouteRecordRaw> = [
@@ -8,11 +8,27 @@ const routes: Array<RouteRecordRaw> = [
     },
     {
         path: '/login',
-        component: () => import('../views/login.vue')
+        component: () => import('../views/login/login.vue')
     },
     {
-        path: '/chat',
-        component: () => import('../views/chat.vue')
+        path: '/register',
+        component: () => import('../views/login/register.vue')
+    },
+    {
+        path: '/consultation',
+        component: () => import('../views/assistant/consultation.vue')
+    },
+    {
+        path: '/diary',
+        component: () => import('../views/assistant/diary.vue')
+    },
+    {
+        path: '/knowledge',
+        component: () => import('../views/assistant/knowledge.vue')
+    },
+    {
+        path: '/admin',
+        component: () => import('../views/admin/admin.vue')
     }
 ]
 
@@ -22,28 +38,31 @@ const router = createRouter({
     routes
 })
 
-// 白名单路由（无需登录）
-const WHITE_LIST = ['/login']
+// 白名单路由（无需登录，首页默认放行）
+const WHITE_LIST = ['/', '/login', '/register']
 
-// 路由守卫：未登录强制跳转登录页
+// 路由守卫：只有访问非首页时才校验登录态
 router.beforeEach((to, _from, next) => {
-    const token = localStorage.getItem('token')
-
-    if (token) {
-        // 已登录访问登录页 → 重定向到首页
-        if (to.path === '/login') {
-            next('/')
-        } else {
-            next()
-        }
-    } else {
-        // 未登录 → 白名单放行，否则去登录页
-        if (WHITE_LIST.includes(to.path)) {
-            next()
-        } else {
-            next('/login')
-        }
+    // 首页和白名单直接放行，不校验 token
+    if (WHITE_LIST.includes(to.path)) {
+        next()
+        return
     }
+
+    const token = localStorage.getItem('token')
+    if (!token) {
+        // 未登录访问其他页面 → 拦截到登录页
+        next('/login')
+        return
+    }
+
+    // 后台管理页仅管理员可访问（与 login.vue 中 roleType === 2 保持一致）
+    if (to.path === '/admin' && Number(localStorage.getItem('roleType')) !== 2) {
+        next('/')
+        return
+    }
+
+    next()
 })
 
 export default router

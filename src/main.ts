@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import FcDesigner from '@form-create/designer';
 import ElementPlus from 'element-plus';
 import 'element-plus/dist/index.css';
-import './style.css'
+import './assets/style.css'
 import App from './App.vue'
 import router from './router'
 

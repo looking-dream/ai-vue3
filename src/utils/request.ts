@@ -4,9 +4,9 @@ import { ElMessage } from 'element-plus'
 
 // 响应数据结构
 export interface ApiResponse<T = any> {
-  code: number
+  code: number | string
   data: T
-  message: string
+  msg: string
 }
 
 // 创建 axios 实例
@@ -25,7 +25,8 @@ service.interceptors.request.use(
     // 从 localStorage 获取 token
     const token = localStorage.getItem('token')
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+      // 后端从请求头 token 字段读取
+      config.headers.token = token
     }
     return config
   },
@@ -44,22 +45,22 @@ service.interceptors.response.use(
       return response
     }
 
-    // 业务状态码判断
-    if (data.code === 200) {
+    // 业务状态码判断（兼容数字 200 和字符串 "200"）
+    if (Number(data.code) === 200) {
       return data as any
     }
 
     // token 过期处理
-    if (data.code === 401) {
+    if (Number(data.code) === 401) {
       localStorage.removeItem('token')
       // 跳转登录页（可按需调整路由路径）
       // router.push('/login')
       ElMessage.error('登录已过期，请重新登录')
-      return Promise.reject(new Error(data.message || 'token 已过期'))
+      return Promise.reject(new Error(data.msg || 'token 已过期'))
     }
 
-    ElMessage.error(data.message || '请求失败')
-    return Promise.reject(new Error(data.message || '请求失败'))
+    ElMessage.error(data.msg || '请求失败')
+    return Promise.reject(new Error(data.msg || '请求失败'))
   },
   (error: AxiosError) => {
     const message = error.message || '网络异常'
